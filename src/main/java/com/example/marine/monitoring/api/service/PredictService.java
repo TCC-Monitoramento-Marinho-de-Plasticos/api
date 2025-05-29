@@ -1,7 +1,6 @@
 package com.example.marine.monitoring.api.service;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,14 +8,13 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
 
 @Service
 public class PredictService {
     private static final String SCRIPT_PATH = "/app/knn/predict_with_image_output.py";
     private static final String MODEL_PATH = "/app/knn/knn_model.pkl";
 
-    public ResponseEntity<byte[]> predictFromFile(MultipartFile file) {
+    public ResponseEntity<String> predictFromFile(MultipartFile file) {
         try {
             File tempImage = File.createTempFile("input", ".jpg");
             file.transferTo(tempImage);
@@ -26,37 +24,24 @@ public class PredictService {
             Process process = pb.start();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            StringBuilder output = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println("Python output: " + line);
-                output.append(line).append("\n");
-            }
+            String outputLine = reader.readLine();
+            System.out.println("Python output: " + outputLine);
 
             int exitCode = process.waitFor();
             tempImage.delete();
 
-            if (exitCode != 0) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            if (exitCode != 0 || outputLine == null || !outputLine.contains("|")) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao processar imagem");
             }
 
-            String outputImagePath = output.toString().trim();
-            File outputImage = new File(outputImagePath);
+            String[] parts = outputLine.split("\\|");
+            String predictionLabel = parts[1];
 
-            if (!outputImage.exists()) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-            }
-
-            byte[] imageBytes = Files.readAllBytes(outputImage.toPath());
-            outputImage.delete();
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.IMAGE_PNG)
-                    .body(imageBytes);
+            return ResponseEntity.ok(predictionLabel);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno");
         }
     }
 }

@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api")
 public class ApiController {
@@ -19,8 +21,8 @@ public class ApiController {
         this.predictService = predictService;
     }
 
-    @PostMapping(value = "/predict", produces = MediaType.IMAGE_PNG_VALUE)
-    public ResponseEntity<byte[]> predict(@RequestParam("file") MultipartFile file) {
+    @PostMapping(value = "/predict", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> predict(@RequestParam("file") MultipartFile file) {
         return predictService.predictFromFile(file);
     }
 }
