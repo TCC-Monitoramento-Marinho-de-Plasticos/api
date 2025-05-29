@@ -35,7 +35,7 @@ def main():
     plt.title("Predição: " + label)
     plt.axis('off')
     plt.savefig(output_image_path)
-    print(output_image_path)
+    print(f"{output_image_path}|{label}")
 
 if __name__ == "__main__":
     main()

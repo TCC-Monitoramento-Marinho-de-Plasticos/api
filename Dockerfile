@@ -15,7 +15,7 @@ WORKDIR /app
 
 # Copia o JAR e os arquivos do modelo/script
 COPY target/demo-0.0.1-SNAPSHOT.jar app.jar
-COPY knn knn/
+COPY knn/ knn/
 
 # Expõe a porta da aplicação
 EXPOSE 8080
