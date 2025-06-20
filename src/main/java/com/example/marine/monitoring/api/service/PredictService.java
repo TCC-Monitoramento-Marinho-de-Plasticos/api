@@ -11,8 +11,8 @@ import java.io.InputStreamReader;
 
 @Service
 public class PredictService {
-    private static final String SCRIPT_PATH = "/app/knn/predict_with_image_output.py";
-    private static final String MODEL_PATH = "/app/knn/knn_model.pkl";
+    private static final String SCRIPT_PATH = "/app/modelo/predict_with_image_output.py";
+    private static final String MODEL_PATH = "/app/modelo/svm_model.pkl";
 
     public ResponseEntity<String> predictFromFile(MultipartFile file) {
         try {

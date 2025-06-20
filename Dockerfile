@@ -6,16 +6,14 @@ RUN apt-get update && \
     apt-get clean
 
 # Instala bibliotecas Python necessárias
-RUN pip install opencv-python
-RUN pip install opencv-python matplotlib numpy
-RUN pip install opencv-python matplotlib numpy scikit-learn
+RUN pip install opencv-python matplotlib numpy scikit-learn scikit-image
 
 # Define o diretório de trabalho
 WORKDIR /app
 
 # Copia o JAR e os arquivos do modelo/script
 COPY target/demo-0.0.1-SNAPSHOT.jar app.jar
-COPY knn/ knn/
+COPY modelo/ modelo/
 
 # Expõe a porta da aplicação
 EXPOSE 8080
