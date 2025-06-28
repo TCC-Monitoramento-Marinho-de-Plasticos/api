@@ -10,7 +10,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "http://3.225.100.118:5173"
+})
 public class ApiController {
 
     private final PredictService predictService;
