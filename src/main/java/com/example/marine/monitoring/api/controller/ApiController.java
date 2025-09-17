@@ -6,8 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api")
 public class ApiController {
@@ -19,7 +17,14 @@ public class ApiController {
     }
 
     @PostMapping(value = "/predict", produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> predict(@RequestParam("file") MultipartFile file, @RequestParam String localization) {
+    public ResponseEntity<String> predict(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("localization") String localization) {
         return predictService.predictFromFile(file, localization);
+    }
+
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("API is running");
     }
 }
