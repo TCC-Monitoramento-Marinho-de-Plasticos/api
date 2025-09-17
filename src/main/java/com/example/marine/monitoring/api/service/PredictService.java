@@ -42,6 +42,7 @@ public class PredictService {
         new File(UPLOAD_DIR).mkdirs();
     }
 
+    @Transactional
     public ResponseEntity<String> predictFromFile(MultipartFile file, String localization) {
         File tempImage = null;
         try {
