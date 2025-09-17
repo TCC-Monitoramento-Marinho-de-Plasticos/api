@@ -10,10 +10,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = {
-        "http://localhost:5173",
-        "http://3.225.100.118:5173"
-})
 public class ApiController {
 
     private final PredictService predictService;
@@ -23,7 +19,7 @@ public class ApiController {
     }
 
     @PostMapping(value = "/predict", produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> predict(@RequestParam("file") MultipartFile file) {
-        return predictService.predictFromFile(file);
+    public ResponseEntity<String> predict(@RequestParam("file") MultipartFile file, @RequestParam String localization) {
+        return predictService.predictFromFile(file, localization);
     }
 }
