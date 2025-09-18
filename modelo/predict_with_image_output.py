@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 from skimage.feature import hog
+import os
 
 def extract_hog_features(img):
     return hog(
@@ -23,6 +24,18 @@ def main():
     image_path = sys.argv[1]
     model_path = sys.argv[2]
     output_image_path = "/tmp/output_prediction.png"
+
+    print(f"[LOG] image_path = {image_path}")
+    print(f"[LOG] model_path = {model_path}")
+    print(f"[LOG] output_image_path = {output_image_path}")
+
+    # Verifica se os arquivos existem
+    if not os.path.isfile(image_path):
+        print(f"Erro: arquivo de imagem não existe: {image_path}")
+        sys.exit(1)
+    if not os.path.isfile(model_path):
+        print(f"Erro: arquivo de modelo não existe: {model_path}")
+        sys.exit(1)
 
     try:
         model = pickle.load(open(model_path, "rb"))
@@ -45,6 +58,9 @@ def main():
     plt.imshow(img, cmap='gray')
     plt.title("Predição: " + label)
     plt.axis('off')
+
+    # Garante que diretório existe
+    os.makedirs(os.path.dirname(output_image_path), exist_ok=True)
     plt.savefig(output_image_path)
     print(f"{output_image_path}|{label}")
 
