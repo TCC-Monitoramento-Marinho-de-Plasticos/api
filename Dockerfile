@@ -16,7 +16,9 @@ WORKDIR /app
 COPY target/demo-0.0.1-SNAPSHOT.jar app.jar
 COPY modelo/ modelo/
 
+# Cria diretório de uploads temporários com permissão total
 RUN mkdir -p /tmp/uploads
+RUN chmod -R 777 /tmp/uploads
 
 # Expõe a porta da aplicação
 EXPOSE 8081
