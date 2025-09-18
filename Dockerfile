@@ -2,7 +2,8 @@ FROM openjdk:17-jdk-slim
 
 # Instala dependências do sistema e o Python
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip libgl1-mesa-glx libglib2.0-0 libsm6 libxrender1 libxext6 && \
+    apt-get install -y python3 python3-pip libgl1-mesa-glx libglib2.0-0 \
+    libsm6 libxrender1 libxext6 libfontconfig1 libpng-dev && \
     apt-get clean
 
 # Instala bibliotecas Python necessárias
@@ -15,8 +16,10 @@ WORKDIR /app
 COPY target/demo-0.0.1-SNAPSHOT.jar app.jar
 COPY modelo/ modelo/
 
+RUN mkdir -p /tmp/uploads
+
 # Expõe a porta da aplicação
-EXPOSE 8080
+EXPOSE 8081
 
 # Comando de entrada
 ENTRYPOINT ["java", "-jar", "app.jar"]
