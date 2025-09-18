@@ -1,6 +1,8 @@
 package com.example.marine.monitoring.api.service;
 
 import com.example.marine.monitoring.api.client.GeocodingClient;
+import com.example.marine.monitoring.api.dto.LocationDto;
+import com.example.marine.monitoring.api.dto.SummaryDto;
 import com.example.marine.monitoring.api.entity.ClassificationEntity;
 import com.example.marine.monitoring.api.entity.ImageEntity;
 import com.example.marine.monitoring.api.entity.ResidueEntity;
@@ -15,8 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PredictService {
@@ -172,5 +174,76 @@ public class PredictService {
     private String parsePrediction(String outputLine) {
         String[] parts = outputLine.split("\\|");
         return parts.length > 1 ? parts[1] : "Desconhecido";
+    }
+
+    public SummaryDto getSummary() {
+        // Total reports e localizações
+        Long totalReports = classificationRepository.countTotalReports();
+        Long totalLocations = classificationRepository.countDistinctLocations();
+
+        // Área crítica
+        List<Object[]> criticalAreaList = classificationRepository.findCriticalArea();
+        String criticalArea = null;
+        Long reportsInCriticalArea = 0L;
+        if (!criticalAreaList.isEmpty()) {
+            Object[] first = criticalAreaList.get(0);
+            criticalArea = (String) first[0];
+            reportsInCriticalArea = (Long) first[1];
+        }
+
+        // Tipo de resíduo mais comum
+        List<Object[]> mostCommonResidueList = residueRepository.findMostCommonResidue();
+        String mostCommonResidueType = null;
+        Long mostCommonResidueQuantity = 0L;
+        if (!mostCommonResidueList.isEmpty()) {
+            Object[] first = mostCommonResidueList.get(0);
+            mostCommonResidueType = (String) first[0];
+            mostCommonResidueQuantity = (Long) first[1];
+        }
+
+        return new SummaryDto(totalReports, totalLocations, criticalArea, reportsInCriticalArea,
+                mostCommonResidueType, mostCommonResidueQuantity);
+    }
+
+    public List<LocationDto> getAllLocations() {
+        List<ClassificationEntity> classifications = classificationRepository.findAll();
+
+        // Agrupar por localização
+        Map<String, List<ClassificationEntity>> grouped = classifications.stream()
+                .collect(Collectors.groupingBy(ClassificationEntity::getLocation));
+
+        List<LocationDto> result = new ArrayList<>();
+
+        for (Map.Entry<String, List<ClassificationEntity>> entry : grouped.entrySet()) {
+            String location = entry.getKey();
+            List<ClassificationEntity> locationClassifications = entry.getValue();
+
+            // Contar os tipos de resíduos
+            Map<String, Integer> typeDistribution = new HashMap<>();
+            for (ClassificationEntity c : locationClassifications) {
+                for (ResidueEntity r : c.getResidues()) {
+                    typeDistribution.put(r.getType(), typeDistribution.getOrDefault(r.getType(), 0) + 1);
+                }
+            }
+
+            // Tipo mais comum
+            String mostCommonType = typeDistribution.entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .map(Map.Entry::getKey)
+                    .orElse("");
+
+            ClassificationEntity first = locationClassifications.get(0);
+
+            result.add(new LocationDto(
+                    location,
+                    first.getLatitude(),
+                    first.getLongitude(),
+                    typeDistribution.values().stream().mapToInt(Integer::intValue).sum(),
+                    mostCommonType,
+                    typeDistribution
+            ));
+        }
+
+        return result;
     }
 }
