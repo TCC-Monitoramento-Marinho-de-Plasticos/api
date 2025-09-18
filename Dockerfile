@@ -2,8 +2,7 @@ FROM openjdk:17-jdk-slim
 
 # Instala dependências do sistema e o Python
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip libgl1-mesa-glx libglib2.0-0 \
-    libsm6 libxrender1 libxext6 libfontconfig1 libpng-dev && \
+    apt-get install -y python3 python3-pip libgl1-mesa-glx libglib2.0-0 libsm6 libxrender1 libxext6 && \
     apt-get clean
 
 # Instala bibliotecas Python necessárias
@@ -15,10 +14,6 @@ WORKDIR /app
 # Copia o JAR e os arquivos do modelo/script
 COPY target/demo-0.0.1-SNAPSHOT.jar app.jar
 COPY modelo/ modelo/
-
-# Cria diretório de uploads temporários com permissão total
-RUN mkdir -p /tmp/uploads
-RUN chmod -R 777 /tmp/uploads
 
 # Expõe a porta da aplicação
 EXPOSE 8081
