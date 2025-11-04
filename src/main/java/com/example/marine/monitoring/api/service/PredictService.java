@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class PredictService {
-    private static final String SCRIPT_PATH = "/app/modelo/predict_with_image_output.py";
-    private static final String MODEL_PATH = "/app/modelo/svm_model.pkl";
+    private static final String SCRIPT_PATH = "/app/modelo/predict_with_image_output_cnn.py";
+    private static final String MODEL_PATH = "/app/modelo/modelo_cnn_imagens_de_fora_3_50epochs.keras";
     private static final String UPLOAD_DIR = "/tmp/uploads/";
 
     private final ClassificationRepository classificationRepository;
