@@ -16,7 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -177,32 +179,104 @@ public class PredictService {
     }
 
     public SummaryDto getSummary() {
-        // Total reports e localizações
+
         Long totalReports = classificationRepository.countTotalReports();
         Long totalLocations = classificationRepository.countDistinctLocations();
 
-        // Área crítica
-        List<Object[]> criticalAreaList = classificationRepository.findCriticalArea();
-        String criticalArea = null;
+        // -------------------------
+        // ÁREA MAIS CRÍTICA
+        // -------------------------
+        List<Object[]> criticalAreaResult = classificationRepository.findCriticalArea();
+
+        String criticalArea = "N/A";
         Long reportsInCriticalArea = 0L;
-        if (!criticalAreaList.isEmpty()) {
-            Object[] first = criticalAreaList.get(0);
-            criticalArea = (String) first[0];
-            reportsInCriticalArea = (Long) first[1];
+
+        if (!criticalAreaResult.isEmpty()) {
+            criticalArea = (String) criticalAreaResult.get(0)[0];
+            reportsInCriticalArea = (Long) criticalAreaResult.get(0)[1];
         }
 
-        // Tipo de resíduo mais comum
-        List<Object[]> mostCommonResidueList = residueRepository.findMostCommonResidue();
-        String mostCommonResidueType = null;
-        Long mostCommonResidueQuantity = 0L;
-        if (!mostCommonResidueList.isEmpty()) {
-            Object[] first = mostCommonResidueList.get(0);
-            mostCommonResidueType = (String) first[0];
-            mostCommonResidueQuantity = (Long) first[1];
+        // -------------------------
+        // LIMPOS / SUJOS
+        // -------------------------
+        Long totalDirtyReports = classificationRepository.countResidueReports();
+        Long totalCleanReports = totalReports - totalDirtyReports;
+
+        Double residueRate = totalReports == 0
+                ? 0.0
+                : (double) totalDirtyReports / totalReports * 100;
+
+        // -------------------------
+        // ÁREA MAIS LIMPA
+        // -------------------------
+        List<Object[]> cleanestAreaResult = classificationRepository.findCleanestArea();
+
+        String cleanestArea = "N/A";
+        Long cleanestAreaReports = 0L;
+
+        if (!cleanestAreaResult.isEmpty()) {
+            cleanestArea = (String) cleanestAreaResult.get(0)[0];
+            cleanestAreaReports = (Long) cleanestAreaResult.get(0)[1];
         }
 
-        return new SummaryDto(totalReports, totalLocations, criticalArea, reportsInCriticalArea,
-                mostCommonResidueType, mostCommonResidueQuantity);
+        // -------------------------
+        // TREND DOS ÚLTIMOS 7 DIAS
+        // -------------------------
+        LocalDate sevenDaysAgo = LocalDate.now().minusDays(7);
+
+        List<Object[]> rawTrendData =
+                classificationRepository.findLast7DaysTrend(sevenDaysAgo);
+
+        Map<String, Long> trendMap = buildTrendMap(rawTrendData);
+
+        // -------------------------
+        // CONTAGEM DA ÚLTIMA SEMANA
+        // -------------------------
+        Long lastWeek = classificationRepository.countFromDate(sevenDaysAgo);
+
+        // -------------------------
+        // CONTAGEM DA SEMANA ANTERIOR
+        // -------------------------
+        LocalDate twoWeeksAgo = LocalDate.now().minusDays(14);
+
+        Long previousWeek = classificationRepository.countBetweenDates(
+                twoWeeksAgo,
+                sevenDaysAgo
+        );
+
+        Double changeRate;
+        if (previousWeek == 0) {
+            changeRate = lastWeek > 0 ? 100.0 : 0.0;
+        } else {
+            changeRate = ((double) (lastWeek - previousWeek) / previousWeek) * 100;
+        }
+
+        return new SummaryDto(
+                totalReports,
+                totalLocations,
+                criticalArea,
+                reportsInCriticalArea,
+                residueRate,
+                cleanestArea,
+                cleanestAreaReports,
+                trendMap,
+                changeRate,
+                totalCleanReports,
+                totalDirtyReports
+        );
+    }
+
+    private Map<String, Long> buildTrendMap(List<Object[]> rawTrendData) {
+        Map<String, Long> trendMap = new TreeMap<>();
+
+        for (Object[] row : rawTrendData) {
+            LocalDate date = (LocalDate) row[0];
+            Long count = (Long) row[1];
+
+            trendMap.put(date.toString(), count);
+        }
+
+        return trendMap;
     }
 
     public List<LocationDto> getAllLocations() {
