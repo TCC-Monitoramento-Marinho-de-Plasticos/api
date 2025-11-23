@@ -251,6 +251,17 @@ public class PredictService {
             changeRate = ((double) (lastWeek - previousWeek) / previousWeek) * 100;
         }
 
+        Long dirtyLastWeek = classificationRepository.countDirtyFromDate(sevenDaysAgo);
+
+        Long dirtyPreviousWeek = classificationRepository.countDirtyBetweenDates(twoWeeksAgo, sevenDaysAgo);
+
+        Double dirtyChangeRate;
+        if (dirtyPreviousWeek == 0) {
+            dirtyChangeRate = dirtyLastWeek > 0 ? 100.0 : 0.0;
+        } else {
+            dirtyChangeRate = ((double) (dirtyLastWeek - dirtyPreviousWeek) / dirtyPreviousWeek) * 100;
+        }
+
         return new SummaryDto(
                 totalReports,
                 totalLocations,
@@ -262,7 +273,8 @@ public class PredictService {
                 trendMap,
                 changeRate,
                 totalCleanReports,
-                totalDirtyReports
+                totalDirtyReports,
+                dirtyChangeRate // <-- adiciona aqui
         );
     }
 

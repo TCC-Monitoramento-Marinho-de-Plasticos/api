@@ -7,11 +7,12 @@ public record SummaryDto(
         Long totalLocations,
         String criticalArea,
         Long reportsInCriticalArea,
-        Double residueRate,
+        Double residueRate,          // % de relatos com lixo (hasResidue = 1)
         String cleanestArea,
         Long cleanestAreaReports,
         Map<String, Long> trendMap,
-        Double changeRate,
+        Double changeRate,           // variação total de reports
         Long totalCleanReports,
-        Long totalDirtyReports
+        Long totalDirtyReports,
+        Double dirtyChangeRate       // <-- NOVO: variação de relatos COM lixo
 ) {}

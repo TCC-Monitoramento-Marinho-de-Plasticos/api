@@ -64,4 +64,24 @@ public interface ClassificationRepository extends JpaRepository<ClassificationEn
     """)
     Long countBetweenDates(@Param("startDate") LocalDate startDate,
                            @Param("endDate") LocalDate endDate);
+
+    long countByLocationAndHasResidue(String location, Short hasResidue);
+
+    @Query("""
+       SELECT COUNT(c)
+       FROM ClassificationEntity c
+       WHERE c.classifiedAt >= :startDate
+         AND c.hasResidue = 1
+""")
+    Long countDirtyFromDate(@Param("startDate") LocalDate startDate);
+
+    @Query("""
+       SELECT COUNT(c)
+       FROM ClassificationEntity c
+       WHERE c.classifiedAt BETWEEN :startDate AND :endDate
+         AND c.hasResidue = 1
+""")
+    Long countDirtyBetweenDates(@Param("startDate") LocalDate startDate,
+                                @Param("endDate") LocalDate endDate);
+
 }
