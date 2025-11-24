@@ -6,6 +6,8 @@ import com.google.firebase.FirebaseOptions;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -17,17 +19,26 @@ public class FirebaseConfig {
     @Value("${spring.firebase.credentials}")
     private String firebaseCredentialsPath;
 
+    private final ResourceLoader resourceLoader;
+
+    public FirebaseConfig(ResourceLoader resourceLoader) {
+        this.resourceLoader = resourceLoader;
+    }
+
     @PostConstruct
     public void init() throws IOException {
-        InputStream serviceAccount = new FileInputStream(firebaseCredentialsPath);
+        Resource resource = resourceLoader.getResource(firebaseCredentialsPath);
 
-        FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                .setStorageBucket("marinestore-bd39a.appspot.com")
-                .build();
+        try (InputStream serviceAccount = resource.getInputStream()) {
 
-        if (FirebaseApp.getApps().isEmpty()) {
-            FirebaseApp.initializeApp(options);
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .setStorageBucket("marinestore-bd39a.firebasestorage.app")
+                    .build();
+
+            if (FirebaseApp.getApps().isEmpty()) {
+                FirebaseApp.initializeApp(options);
+            }
         }
     }
 }
