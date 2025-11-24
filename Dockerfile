@@ -16,7 +16,7 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir --break-system-packages \
+RUN pip install --no-cache-dir \
     opencv-python \
     matplotlib \
     numpy \
