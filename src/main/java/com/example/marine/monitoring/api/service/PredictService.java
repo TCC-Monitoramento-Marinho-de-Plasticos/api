@@ -324,7 +324,7 @@ public class PredictService {
                     location,
                     first.getLatitude(),
                     first.getLongitude(),
-                    typeDistribution.values().stream().mapToInt(Integer::intValue).sum(),
+                    locationClassifications.size(),
                     mostCommonType,
                     typeDistribution
             ));
